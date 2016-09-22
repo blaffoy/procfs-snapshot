@@ -22,8 +22,7 @@ def parse_args():
                         help='path to ssh private key for passwordless login, if neither key nor password are set, will default to using ~/.ssh/id_rsa')
     parser.add_argument('-P', '--ssh-port', type=int, default=22,
                         help='the port to connect to for SSH')
-    # Multiple pids could be set using bash expansion: {1234,2345}
-    parser.add_argument('-p', '--pid', default='*',
+    parser.add_argument('-p', '--pid', type=int, nargs='+', default=['*'],
                         help='the pid(s) to look up (default: *)')
     parser.add_argument('-u', '--user', default='root',
                         help='user to log into remote host with (default: root)')
@@ -73,10 +72,11 @@ def read_stats(args):
     #     --pid "`pidof foobar`"
     #
     # at some point.
-    if args.pid.isdigit() or args.pid == '*':
-        pids = args.pid
+    if len(args.pid) == 1:
+        pids = args.pid[0]
     else:
-        pids = '{%s}' % args.pid.replace(' ', ',')
+        pids = ','.join(str(x) for x in args.pid)
+        pids = '{%s}' % pids
 
     # root can see all of /proc, another user is likely not going to be able
     # to read all of it. This isn't a hard error, but won't give a full view
